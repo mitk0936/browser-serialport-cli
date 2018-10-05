@@ -1,5 +1,5 @@
 {
-  "name": "hm-10-web-cli",
+  "name": "serial-web-cli",
   "version": "1.0.0",
   "description": "A simple web console for testing and debugging hm-10 BLE device via serial port.",
   "main": "server/index.js",

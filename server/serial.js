@@ -1,4 +1,5 @@
 const serialport = require('serialport');
+const Readline = require('@serialport/parser-readline');
 
 const list = () => new Promise((resolve, reject) => {
   serialport.list((err, ports) => {
@@ -9,7 +10,7 @@ const list = () => new Promise((resolve, reject) => {
     resolve(
       ports.filter(
         ({ serialNumber, manufacturer }) => 
-          Boolean(serialNumber && manufacturer)
+          Boolean(serialNumber || manufacturer)
       )
     );
   });
@@ -20,6 +21,8 @@ const init = (comName, onError) => {
     baudRate: 9600
   });
 
+  const parser = port.pipe(new Readline({ delimiter: '\n' }));
+
   port.on('error', onError);
 
   port.on('close', () => onError({
@@ -28,7 +31,7 @@ const init = (comName, onError) => {
   
   const send = (data, newLine = false) => {
     const stringData = newLine ? `${data}\r\n` : data;
-    
+
     port.write(data, (err) => {
       if (err) {
         return console.log('Error on write: ', err.message);
@@ -37,10 +40,12 @@ const init = (comName, onError) => {
   };
 
   const subscribe = (onData) => {
-    port.on('data', function (data) {
+    parser.on('data', function (data) {
       const stringData = data.toString('utf8');
       onData(stringData);
     });
+
+    port.on('data', (data) => onData(data.toString('utf8')));
   };
 
   const close = () => port.close();

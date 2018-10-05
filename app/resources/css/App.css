@@ -9,17 +9,6 @@
 	padding: 10px;
 }
 
-.input {
-	display: block;
-	padding: 5px;
-	box-sizing: border-box;
-	width: 100%;
-	margin: 10px 0;
-}
-
 ul {
-	list-style-type: none;
-	max-height: 200px;
-	max-width: 100%;
-	overflow: auto;
+	
 }

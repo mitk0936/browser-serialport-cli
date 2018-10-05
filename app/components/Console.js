@@ -3,10 +3,16 @@ import PropTypes from 'prop-types';
 import commonStyles from '../resources/css/App.css';
 
 export class Console extends React.Component {
+  scrollView = null;
+
   render() {
     return [
       (
-        <ul key="logs" className={commonStyles.ul}>
+        <ul
+          key="logs"
+          className={commonStyles.ul}
+          ref={(r) => this.scrollView = r}
+        >
           {
             Object.keys(this.props.logs).map((key) => (
               <li key={`command-${key}-${key}`}>
@@ -30,6 +36,12 @@ export class Console extends React.Component {
         />
       )
     ];  
+  }
+
+  componentDidUpdate() {
+    if (this.scrollView) {
+      this.scrollView.scrollTop = this.scrollView.scrollHeight;
+    }
   }
 };
 

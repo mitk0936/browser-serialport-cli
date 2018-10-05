@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../resources/css/Device.css';
-import commonStyles from '../resources/css/App.css';
 import Console from '../components/Console';
 import io from 'socket.io-client';
 
@@ -77,7 +76,6 @@ export class Device extends React.Component {
         {this.renderPortSelect()}
 
         <button
-          className={commonStyles.input}
           onClick={() => this.startConnection()}
         >
           Connect
