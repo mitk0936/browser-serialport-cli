@@ -1,120 +1,203 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../resources/css/Device.css';
+import Chip from 'react-toolbox/lib/chip';
+import Avatar from 'react-toolbox/lib/avatar';
+import { Card, CardMedia, CardTitle, CardText, CardActions } from 'react-toolbox/lib/card';
+import { FontIcon } from 'react-toolbox/lib/font_icon';
+import Button from 'react-toolbox/lib/button';
 import Console from '../components/Console';
-import io from 'socket.io-client';
+import DeviceSelect from './serial-settings/device-select';
+import ConsoleOptions from './serial-settings/console-options';
 
 export class Device extends React.Component {
   state = {
-    logs: {},
     ports: [],
     selectedPort: null,
+    activeConnection: false,
+    newLineParser: false,
     sendNewLine: false
   };
 
-  socket = null;
+  console = null;
+
+  constructor (props) {
+    super(props);
+
+    this.console = React.createRef();
+  }
   
-  componentWillMount () {
-    this.socket = io('http://127.0.0.1:6543');
-
-    this.socket.on('portslist', (ports) => this.setState({ ports }));
-    this.socket.on('portError', (errMessage) => alert(errMessage));
-
-    this.socket.on('serial->web', (line) => {
-      this.onCommand(line, '<<<');
-    });
-  }
-
-  renderPortSelect = () => {
-    const { ports } = this.state;
-
-    return ports.length ? (
-      <select
-        className={commonStyles.input}
-        onChange={(e) => this.setState({
-          selectedPort: e.target.value
-        })}
-      >
-        {
-          ports.map(({ comName }) => (
-            <option value={comName} key={`port-device-${comName}`}>
-              {comName}
-            </option>
-          ))
-        }
-      </select>
-    ) : (
-      <p>
-        No connected devices
-      </p>
-    );
-  }
-
-  renderConsoleFooter = () => {
-    return (
-      <div>
-        <input
-          type="checkbox"
-          id="send-new-line"
-          name="send-new-line"
-          checked={this.state.sendNewLine}
-          onChange={(ev) => this.setState({ sendNewLine: ev.target.checked })}
-        />
-        <label for="send-new-line">
-          Send New Line
-        </label>
-      </div>
-    );
-  }
-
-  render () {
-    return (
-      <fieldset className={styles['device-container']}>
-        <legend>
-          New USB Device
-        </legend>
-        {this.renderPortSelect()}
-
-        <button
-          onClick={() => this.startConnection()}
-        >
-          Connect
-        </button>
-
-        <Console
-          logs={this.state.logs}
-          ref={(ref) => this.console = ref}
-          onCommand={this.onCommand}
-        />
-
-        {this.renderConsoleFooter()}
-      </fieldset>
-    );
-  }
-
   startConnection = () => {
-    if (this.state.selectedPort || this.state.ports.length > 0) {
-      const comName = this.state.selectedPort || this.state.ports[0].comName;
-      this.socket.emit('initSerialConnection', { comName });
+    const { socket, createNotification } = this.props;
+    const { selectedPort, newLineParser } = this.state;
+
+    if (selectedPort) {
+      socket.emit('initSerialConnection', {
+        comName: selectedPort,
+        newLineParser
+      });
+
+      return;
+    }
+
+    createNotification({ label: 'No selected port.' });
+  }
+
+  abortConnection = (removeDevice = true) => {
+    const { socket, onRemove } = this.props;
+    const { selectedPort, activeConnection } = this.state;
+
+    activeConnection && this.setState({ activeConnection: false });
+    !removeDevice && socket.emit('closeSerialConnection');
+
+    if (removeDevice) {
+      socket.close();
+      onRemove();
     }
   }
 
-  onCommand = (command, prefix = '>>>') => {
-    this.socket.emit('web->serial', {
-      command,
-      newLine: this.state.sendNewLine
-    });
+  sendCommand = (command) => {
+    const { socket } = this.props;
+    const { activeConnection } = this.state;
 
-    this.setState({
-      logs: {
-        ...this.state.logs,
-        [`${+new Date()}-command-${command}`]: `${prefix} ${command}`
-      }
-    });
+    if (activeConnection) {
+      this.props.socket.emit('web->serial', {
+        command,
+        newLine: this.state.sendNewLine
+      });
+    }
   }
 
+  saveLog = (log, prefix = '>>>') => {
+    const { createNotification } = this.props;
+    
+    try {
+      this.console.current.print(`${prefix} ${log}`);
+    } catch (e) {
+      createNotification({ label: `Error, ${e.message}` });
+    }
+  }
+
+  componentWillMount () {
+    const { socket, createNotification } = this.props;
+    const { selectedPort } = this.state;
+
+    socket.on('portslist', (ports = []) => {
+      if (!selectedPort && ports[0]) {
+        this.setState({ selectedPort: ports[0].comName })
+      }
+
+      this.setState({ ports });
+    });
+
+    socket.on('portError', ({ message }) =>
+      createNotification({ label: message })
+    );
+
+    socket.on(
+      'serialConnectionReady',
+      ({ comName }) => {
+        createNotification({ label: `${comName} port connected` })
+        this.setState({ activeConnection: true });
+      }
+    );
+
+    socket.on('serial->web', (line) => this.saveLog(line, '<<<'));
+  }
+
+  render () {
+    const { onRemove } = this.props;
+    const { ports, activeConnection, newLineParser, selectedPort } = this.state;
+
+    return (
+      <Card style={{
+        marginBottom: '20px',
+        marginRight: '10px',
+        'flex': '0 0 330px',
+        justifyContent: 'flex-start',
+        position: 'relative',
+        paddingBottom: '50px'
+      }}>
+        {
+          activeConnection && selectedPort && (
+            <CardActions>
+              <Chip>
+                <Avatar style={{backgroundColor: 'deepskyblue'}} icon="devices" />
+                <span>
+                  {selectedPort}
+                </span>
+              </Chip>
+            </CardActions>
+          )
+        }
+        {!activeConnection && (
+          <CardActions>
+            <React.Fragment>
+              <DeviceSelect
+                ports={ports}
+                onChangePort={(port) => this.setState({ selectedPort: port })}
+                selectedPort={selectedPort}
+                newLineParser={newLineParser}
+                onChangeNewLineParser={(value) => this.setState({ newLineParser: value })}
+                onConnect={this.startConnection}
+              />
+            </React.Fragment>
+          </CardActions>
+        )}
+        {
+          activeConnection && (
+            <React.Fragment>
+              <Console
+                ref={this.console}
+                welcomeMessage={`Connected to: ${selectedPort}. \r\nNew line parser: ${String(newLineParser)}`}
+                onCommand={this.sendCommand}
+              />
+              <CardActions>
+                <ConsoleOptions
+                  sendNewLine={this.state.sendNewLine}
+                  onChangeNewLine={(value) => this.setState({ sendNewLine: value })}
+                />
+              </CardActions>
+            </React.Fragment>
+          )
+        }
+        <CardActions style={{
+          backgroundColor: '#eee',
+          borderTop: '1px solid #ccc',
+          position: 'absolute',
+          height: '50px',
+          bottom: 0,
+          left: 0,
+          right: 0
+        }}>
+          <Button
+            onClick={this.abortConnection}
+            icon="delete"
+            floating mini
+          />
+          {
+            activeConnection && (
+              <Button
+                onClick={() => this.abortConnection(false)}
+                icon="power_off"
+                floating mini
+              />
+            )
+          }
+        </CardActions>
+      </Card>
+    );
+  }
+
+  componentWillUnmount() {
+    const { socket } = this.props;
+    socket.close();
+  }
 };
 
-Device.propTypes = {};
+Device.propTypes = {
+  createNotification: PropTypes.func.isRequired,
+  socket: PropTypes.any.isRequired,
+  onRemove: PropTypes.func.isRequired
+};
 
 export default Device;

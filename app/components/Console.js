@@ -1,53 +1,45 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import commonStyles from '../resources/css/App.css';
+import ReactConsole from 'react-console-component';
+require('react-console-component/lib/react-console.css');
 
 export class Console extends React.Component {
-  scrollView = null;
+  console = null;
 
-  render() {
-    return [
-      (
-        <ul
-          key="logs"
-          className={commonStyles.ul}
-          ref={(r) => this.scrollView = r}
-        >
-          {
-            Object.keys(this.props.logs).map((key) => (
-              <li key={`command-${key}-${key}`}>
-                {this.props.logs[key]}
-              </li>
-            ))
-          }
-        </ul>
-      ),
-      (
-        <input
-          type="text"
-          className={commonStyles.input}
-          key="command" onKeyPress={
-            (ev) => {
-              if (ev.key === 'Enter') {
-                this.props.onCommand(ev.target.value)
-              }
-            }
-          }
-        />
-      )
-    ];  
+  constructor(props) {
+    super(props);
+    this.console = React.createRef();
   }
 
-  componentDidUpdate() {
-    if (this.scrollView) {
-      this.scrollView.scrollTop = this.scrollView.scrollHeight;
-    }
+  print = (message) => this.echo(message, false);
+
+  echo = (message, notify = true) => {
+    const { onCommand } = this.props;
+    
+    notify ? onCommand(message) : this.console.current.log(message);
+
+    this.console.current.return();
+  }
+
+  render() {
+    const { welcomeMessage } = this.props;
+
+    return (
+      <div style={{ border: '1px solid #ccc', borderLeft: 0, borderRight: 0 }}>
+        <ReactConsole
+          welcomeMessage={welcomeMessage}
+          ref={this.console}
+          handler={this.echo}
+          autofocus={true}
+        />
+      </div>
+    );
   }
 };
 
 Console.propTypes = {
-  logs: PropTypes.object.isRequired,
+  welcomeMessage: PropTypes.string,
   onCommand: PropTypes.func.isRequired
-}
+};
 
 export default Console;

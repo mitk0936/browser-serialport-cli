@@ -16,37 +16,33 @@ const list = () => new Promise((resolve, reject) => {
   });
 });
 
-const init = (comName, onError) => {
-  const port = new serialport(comName, {
-    baudRate: 9600
-  });
+const init = (comName, onSuccess, onError) => {
+  const port = new serialport(comName, { baudRate: 9600 });
 
-  const parser = port.pipe(new Readline({ delimiter: '\n' }));
+  const parser = port.pipe(new Readline({ delimiter: '\r\n' }));
+
+  port.on('open', onSuccess);
 
   port.on('error', onError);
 
-  port.on('close', () => onError({
-    message: 'Error: Serial port was closed.'
-  }));
+  port.on('close', () => onError({ message: `${comName} port was closed.` }));
   
   const send = (data, newLine = false) => {
     const stringData = newLine ? `${data}\r\n` : data;
 
     port.write(data, (err) => {
       if (err) {
-        return console.log('Error on write: ', err.message);
+        onError({ message: `Failed to send to serial. ${err.message}` });
       }
     });
   };
 
-  const subscribe = (onData) => {
-    parser.on('data', function (data) {
-      const stringData = data.toString('utf8');
-      onData(stringData);
-    });
+  const onDataCallback = (onData) => (data) => onData(data.toString('utf8'));
 
-    port.on('data', (data) => onData(data.toString('utf8')));
-  };
+  const subscribe = ({ newLineParser = false }, onData) =>
+    newLineParser ?
+      parser.on('data', onDataCallback(onData)) :
+      port.on('data', onDataCallback(onData));
 
   const close = () => port.close();
 

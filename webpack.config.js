@@ -41,7 +41,11 @@ module.exports = {
       test: /\.json?$/,
       loader: 'json'
     }, {
+      test: /node_modules\/react-console-component\/.*\.css$/,
+      loader: 'style!css',
+    }, {
       test: /\.css$/,
+      exclude: /node_modules\/react-console-component\/.*\.css$/,
       loader: 'style!css?modules&localIdentName=[name]---[local]---[hash:base64:5]'
     }]
   }

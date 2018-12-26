@@ -19,18 +19,19 @@
     "javascript"
   ],
   "dependencies": {
-    "isomorphic-fetch": "^2.2.1",
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
-    "react-console": "0.0.8",
+    "react-console-component": "^0.6.1",
     "react-dom": "^16.2.0",
     "react-redux": "^5.0.6",
+    "react-toolbox": "^2.0.0-beta.13",
     "redux": "^3.7.2",
     "redux-freeze": "^0.1.5",
     "redux-saga": "^0.16.0",
     "serialport": "^6.2.2",
     "socket.io": "^2.0.4",
-    "socket.io-client": "^2.0.4"
+    "socket.io-client": "^2.0.4",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "autoprefixer": "^6.0.3",

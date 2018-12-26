@@ -1,14 +1,8 @@
 * {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
   outline: none;
 }
 
-.app {
-	padding: 10px;
-}
-
-ul {
-	
+body {
+  background-color: #ccc;
+  padding: 0;
 }

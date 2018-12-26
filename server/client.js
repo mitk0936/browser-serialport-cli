@@ -7,30 +7,30 @@ const run = (server) => {
   const emitPorts = (client = io.sockets) =>
     serial
       .list()
-      .then((ports) =>
-        client.emit('portslist', ports));
+      .then((ports) => client.emit('portslist', ports));
 
   io.on('connection', (client) => {
     const portsUpdate = setInterval(() => emitPorts(), 10000);
-
     emitPorts(client);
     
-    client.on('initSerialConnection', ({ comName, newLine }) => {
+    client.on('initSerialConnection', ({ comName, newLineParser = false }) => {
       const { send, subscribe, close } =
         serial.init(
           comName,
-          ({ message }) => client.emit('portError', message)
+          () => client.emit('serialConnectionReady', { comName }),
+          ({ message }) => client.emit('portError', { message })
         );
 
-      subscribe((line) => client.emit('serial->web', line));
+      subscribe({ newLineParser }, (line) => client.emit('serial->web', line));
 
-      client.on('web->serial',
-        ({ command, newLine }) => {
-          send(command, newLine);
-        });
+      client.on('web->serial', ({ command, newLine }) => send(command, newLine));
 
-      client.on('disconnect', () => {
+      client.once('closeSerialConnection', () => close());
+
+      client.once('disconnect', () => {
+        console.log('DISCONNECTED');
         close();
+        client.removeAllListeners('web->serial');
         clearInterval(portsUpdate);
       });
     });
