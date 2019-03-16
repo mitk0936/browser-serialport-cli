@@ -56,9 +56,6 @@ export class App extends React.Component {
     return (
       <Layout style={{ backgroundColor: '#ccc' }}>
         <Panel style={{ padding: '20px' }}>
-          <h1>
-            Control devices
-          </h1>
           <div style={{ display: 'flex' }}>
             {
               Object.keys(devices).map((id) => devices[id].active ? (

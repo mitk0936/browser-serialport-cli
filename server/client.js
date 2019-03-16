@@ -13,7 +13,7 @@ const run = (server) => {
     const portsUpdate = setInterval(() => emitPorts(), 10000);
     emitPorts(client);
     
-    client.on('initSerialConnection', ({ comName, newLineParser = false }) => {
+    client.on('initSerialConnection', ({ comName }) => {
       const { send, subscribe, close } =
         serial.init(
           comName,
@@ -21,7 +21,7 @@ const run = (server) => {
           ({ message }) => client.emit('portError', { message })
         );
 
-      subscribe({ newLineParser }, (line) => client.emit('serial->web', line));
+      subscribe(({ line, newLine }) => client.emit('serial->web', { line, newLine }));
 
       client.on('web->serial', ({ command, newLine }) => send(command, newLine));
 

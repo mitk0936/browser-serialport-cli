@@ -1,15 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Dropdown from 'react-toolbox/lib/dropdown';
-import Checkbox from 'react-toolbox/lib/checkbox';
 import Button from 'react-toolbox/lib/button';
 
 export const DeviceSelect = ({
   ports,
   onChangePort,
   selectedPort,
-  newLineParser = false,
-  onChangeNewLineParser,
   onConnect
 }) => {
   return ports.length ? (
@@ -24,12 +21,6 @@ export const DeviceSelect = ({
         label="Select usb port"
         labelKey="comName"
         valueKey="comName"
-      />
-      <Checkbox
-        floating
-        checked={newLineParser}
-        label="New line parser"
-        onChange={onChangeNewLineParser}
       />
       {
         ports.length > 0 && (
@@ -52,8 +43,6 @@ DeviceSelect.propTypes = {
   })).isRequired,
   selectedPort: PropTypes.string,
   onChangePort: PropTypes.func.isRequired,
-  newLineParser: PropTypes.boolean,
-  onChangeNewLineParser: PropTypes.func.isRequired,
   onConnect: PropTypes.func.isRequired
 };
 

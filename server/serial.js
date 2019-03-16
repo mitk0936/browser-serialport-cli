@@ -30,19 +30,23 @@ const init = (comName, onSuccess, onError) => {
   const send = (data, newLine = false) => {
     const stringData = newLine ? `${data}\r\n` : data;
 
-    port.write(data, (err) => {
+    port.write(stringData, (err) => {
       if (err) {
         onError({ message: `Failed to send to serial. ${err.message}` });
       }
     });
   };
 
-  const onDataCallback = (onData) => (data) => onData(data.toString('utf8'));
-
-  const subscribe = ({ newLineParser = false }, onData) =>
-    newLineParser ?
-      parser.on('data', onDataCallback(onData)) :
-      port.on('data', onDataCallback(onData));
+  const subscribe = (onData) => [
+    port.on('data', (data) => onData({
+      line: data.toString('utf8'),
+      newLine: false
+    })),
+    parser.on('data', (data) => onData({
+      line: data.toString('utf8'),
+      newLine: true
+    }))
+  ];
 
   const close = () => port.close();
 

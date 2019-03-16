@@ -5,9 +5,9 @@ import Avatar from 'react-toolbox/lib/avatar';
 import { Card, CardMedia, CardTitle, CardText, CardActions } from 'react-toolbox/lib/card';
 import { FontIcon } from 'react-toolbox/lib/font_icon';
 import Button from 'react-toolbox/lib/button';
+import Checkbox from 'react-toolbox/lib/checkbox';
 import Console from '../components/Console';
 import DeviceSelect from './serial-settings/device-select';
-import ConsoleOptions from './serial-settings/console-options';
 
 export class Device extends React.Component {
   state = {
@@ -28,12 +28,11 @@ export class Device extends React.Component {
   
   startConnection = () => {
     const { socket, createNotification } = this.props;
-    const { selectedPort, newLineParser } = this.state;
+    const { selectedPort } = this.state;
 
     if (selectedPort) {
       socket.emit('initSerialConnection', {
-        comName: selectedPort,
-        newLineParser
+        comName: selectedPort
       });
 
       return;
@@ -67,7 +66,7 @@ export class Device extends React.Component {
     }
   }
 
-  saveLog = (log, prefix = '>>>') => {
+  saveLog = (log, prefix = '<<<') => {
     const { createNotification } = this.props;
     
     try {
@@ -79,19 +78,14 @@ export class Device extends React.Component {
 
   componentWillMount () {
     const { socket, createNotification } = this.props;
-    const { selectedPort } = this.state;
+    const { selectedPort, newLineParser } = this.state;
 
-    socket.on('portslist', (ports = []) => {
-      if (!selectedPort && ports[0]) {
-        this.setState({ selectedPort: ports[0].comName })
-      }
+    socket.on('portslist', (ports = []) => this.setState({ ports }));
 
-      this.setState({ ports });
+    socket.on('portError', ({ message }) => {
+      this.saveLog(`Port Error: ${message}`, '<<<');
+      createNotification({ label: message });
     });
-
-    socket.on('portError', ({ message }) =>
-      createNotification({ label: message })
-    );
 
     socket.on(
       'serialConnectionReady',
@@ -101,12 +95,17 @@ export class Device extends React.Component {
       }
     );
 
-    socket.on('serial->web', (line) => this.saveLog(line, '<<<'));
+    socket.on('serial->web', ({ line, newLine }) => {
+      const { newLineParser } = this.state;
+      if ((newLine && newLineParser) || (!newLine && !newLineParser)) {
+        this.saveLog(line, '<<<');
+      }
+    });
   }
 
   render () {
     const { onRemove } = this.props;
-    const { ports, activeConnection, newLineParser, selectedPort } = this.state;
+    const { ports, activeConnection, newLineParser, sendNewLine, selectedPort } = this.state;
 
     return (
       <Card style={{
@@ -136,8 +135,6 @@ export class Device extends React.Component {
                 ports={ports}
                 onChangePort={(port) => this.setState({ selectedPort: port })}
                 selectedPort={selectedPort}
-                newLineParser={newLineParser}
-                onChangeNewLineParser={(value) => this.setState({ newLineParser: value })}
                 onConnect={this.startConnection}
               />
             </React.Fragment>
@@ -148,14 +145,27 @@ export class Device extends React.Component {
             <React.Fragment>
               <Console
                 ref={this.console}
-                welcomeMessage={`Connected to: ${selectedPort}. \r\nNew line parser: ${String(newLineParser)}`}
+                welcomeMessage={`Connected to: ${selectedPort}`}
                 onCommand={this.sendCommand}
               />
               <CardActions>
-                <ConsoleOptions
-                  sendNewLine={this.state.sendNewLine}
-                  onChangeNewLine={(value) => this.setState({ sendNewLine: value })}
+                <Checkbox
+                  floating
+                  checked={newLineParser}
+                  label="New line parser"
+                  onChange={(value) => {
+                    this.setState({ newLineParser: value });
+                    this.saveLog(`New line parser: ${String(value)}`, '');
+                  }}
                 />
+                <span style={{ marginLeft: '10px' }}>
+                  <Checkbox
+                    floating
+                    checked={sendNewLine}
+                    label="Send new line"
+                    onChange={(value) => this.setState({ sendNewLine: value })}
+                  />
+                </span>
               </CardActions>
             </React.Fragment>
           )
