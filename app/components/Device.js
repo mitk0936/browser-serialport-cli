@@ -1,11 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Chip from 'react-toolbox/lib/chip';
-import Avatar from 'react-toolbox/lib/avatar';
-import { Card, CardMedia, CardTitle, CardText, CardActions } from 'react-toolbox/lib/card';
-import { FontIcon } from 'react-toolbox/lib/font_icon';
-import Button from 'react-toolbox/lib/button';
-import Checkbox from 'react-toolbox/lib/checkbox';
 import Console from '../components/Console';
 import DeviceSelect from './serial-settings/device-select';
 
@@ -108,7 +102,7 @@ export class Device extends React.Component {
     const { ports, activeConnection, newLineParser, sendNewLine, selectedPort } = this.state;
 
     return (
-      <Card style={{
+      <div style={{
         marginBottom: '20px',
         marginRight: '10px',
         'flex': '0 0 330px',
@@ -118,18 +112,18 @@ export class Device extends React.Component {
       }}>
         {
           activeConnection && selectedPort && (
-            <CardActions>
-              <Chip>
-                <Avatar style={{backgroundColor: 'deepskyblue'}} icon="devices" />
+            <div>
+              <div>
+                <div style={{backgroundColor: 'deepskyblue'}} icon="devices" />
                 <span>
                   {selectedPort}
                 </span>
-              </Chip>
-            </CardActions>
+              </div>
+            </div>
           )
         }
         {!activeConnection && (
-          <CardActions>
+          <div>
             <React.Fragment>
               <DeviceSelect
                 ports={ports}
@@ -138,7 +132,7 @@ export class Device extends React.Component {
                 onConnect={this.startConnection}
               />
             </React.Fragment>
-          </CardActions>
+          </div>
         )}
         {
           activeConnection && (
@@ -148,29 +142,28 @@ export class Device extends React.Component {
                 welcomeMessage={`Connected to: ${selectedPort}`}
                 onCommand={this.sendCommand}
               />
-              <CardActions>
-                <Checkbox
-                  floating
+              <div>
+                <label for="new-line-parse">New line parser</label>
+                <input id="new-line-parse" type="checkbox"
                   checked={newLineParser}
-                  label="New line parser"
-                  onChange={(value) => {
-                    this.setState({ newLineParser: value });
-                    this.saveLog(`New line parser: ${String(value)}`, '');
+                  onChange={(e) => {
+                    console.log(e.target.checked);
+                    this.setState({ newLineParser: e.target.checked });
+                    this.saveLog(`New line parser: ${String(e.target.checked)}`, '');
                   }}
                 />
                 <span style={{ marginLeft: '10px' }}>
-                  <Checkbox
-                    floating
+                  <label for="new-line-send">Send new line</label>
+                  <input id="new-line-send" type="checkbox"
                     checked={sendNewLine}
-                    label="Send new line"
-                    onChange={(value) => this.setState({ sendNewLine: value })}
+                    onChange={(e) => this.setState({ sendNewLine: e.target.checked })}
                   />
                 </span>
-              </CardActions>
+              </div>
             </React.Fragment>
           )
         }
-        <CardActions style={{
+        <div style={{
           backgroundColor: '#eee',
           borderTop: '1px solid #ccc',
           position: 'absolute',
@@ -179,22 +172,18 @@ export class Device extends React.Component {
           left: 0,
           right: 0
         }}>
-          <Button
+          <button
             onClick={this.abortConnection}
-            icon="delete"
-            floating mini
-          />
+          >Delete</button>
           {
             activeConnection && (
-              <Button
+              <button
                 onClick={() => this.abortConnection(false)}
-                icon="power_off"
-                floating mini
-              />
+              >Disconnect</button>
             )
           }
-        </CardActions>
-      </Card>
+        </div>
+      </div>
     );
   }
 

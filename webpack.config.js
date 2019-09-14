@@ -6,6 +6,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   devtool: 'eval-source-map',
+  mode: 'development',
   entry: [
     'webpack-hot-middleware/client?reload=true',
     path.join(__dirname, 'app/main.js')
@@ -23,30 +24,25 @@ module.exports = {
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('development')
     })
   ],
   module: {
-    loaders: [{
+    rules: [{
       test: /\.jsx?$/,
       exclude: /node_modules/,
-      loader: 'babel',
-      query: {
-        "presets": ["react", "es2015", "stage-3", "react-hmre"],
-        "plugins": ["transform-object-rest-spread", "transform-class-properties"]
-      }
+      loader: 'babel-loader'
     }, {
       test: /\.json?$/,
-      loader: 'json'
+      loader: 'json-loader'
     }, {
       test: /node_modules\/react-console-component\/.*\.css$/,
-      loader: 'style!css',
+      use: ['style-loader', 'css-loader']
     }, {
       test: /\.css$/,
-      exclude: /node_modules\/react-console-component\/.*\.css$/,
-      loader: 'style!css?modules&localIdentName=[name]---[local]---[hash:base64:5]'
+      exclude: /node_modules/,
+      use: ['style-loader', 'css-loader']
     }]
   }
 };

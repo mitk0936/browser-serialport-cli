@@ -1,32 +1,43 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Dropdown from 'react-toolbox/lib/dropdown';
-import Button from 'react-toolbox/lib/button';
+
+const defaultSelectPort = ({ onChangePort, ports, selectedPort }, a) => {
+  const [defaultPort, ...other] = ports;
+
+  console.log('portshere2', a, ports);
+
+  if (!selectedPort && defaultPort) {
+    onChangePort(defaultPort.comName);
+  }
+};
 
 export const DeviceSelect = ({
-  ports,
+  ports = [],
   onChangePort,
   selectedPort,
   onConnect
 }) => {
+
+  React.useEffect(() => defaultSelectPort({ onChangePort, ports, selectedPort }, 'mount'), []);
+  React.useEffect(() => defaultSelectPort({ onChangePort, ports, selectedPort }, 'update ports'), [ports.map(({comName}) => comName).join('')]);
+
   return ports.length ? (
     <div>
-      <Dropdown
-        style={{ border: '1px solid #ccc' }}
-        floating
-        auto
-        onChange={onChangePort}
-        source={ports}
-        value={selectedPort}
-        label="Select usb port"
-        labelKey="comName"
-        valueKey="comName"
-      />
+      <label>Select device on port</label>
+      <select onChange={(e) => {
+        onChangePort(e.currentTarget.value)
+      }}>
+        {
+          ports.map(({comName}, index) => (
+            <option key={`${comName}-${index}`}value={comName} selected={comName === selectedPort}>{comName}</option>
+          ))
+        }
+      </select>
       {
         ports.length > 0 && (
-          <Button onClick={onConnect} icon="link" raised primary>
+          <button onClick={onConnect} icon="link" raised primary>
             Connect
-          </Button>
+          </button>
         )
       }
     </div>

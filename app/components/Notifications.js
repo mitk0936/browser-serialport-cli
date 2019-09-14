@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Snackbar } from 'react-toolbox';
 
 export class Notifications extends React.Component {
   render() {
@@ -10,15 +9,7 @@ export class Notifications extends React.Component {
       <React.Fragment>
         {
           notifications.map(({ id, label }) => (
-            <Snackbar
-              action='Dismiss'
-              active={true}
-              label={label}
-              timeout={5000}
-              onClick={() => onTimeout(id)}
-              onTimeout={() => onTimeout(id)}
-              type='cancel'
-            />
+            <div>{id} {label}</div>
           ))
         } 
       </React.Fragment>

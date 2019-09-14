@@ -1,10 +1,9 @@
 import React from 'react';
 import uuid from 'uuid/v4';
 import io from 'socket.io-client';
-import { Layout, Panel, Button } from 'react-toolbox/lib';
 import Device from './Device';
 import Notifications from './Notifications';
-import commonStyles from '../resources/css/App.css';
+import '../resources/css/App.css';
 
 export class App extends React.Component {
   state = {
@@ -54,8 +53,8 @@ export class App extends React.Component {
     const { devices, notifications } = this.state;
 
     return (
-      <Layout style={{ backgroundColor: '#ccc' }}>
-        <Panel style={{ padding: '20px' }}>
+      <div style={{ backgroundColor: '#ccc' }}>
+        <div style={{ padding: '20px' }}>
           <div style={{ display: 'flex' }}>
             {
               Object.keys(devices).map((id) => devices[id].active ? (
@@ -68,13 +67,13 @@ export class App extends React.Component {
               ) : null
             )}
           </div>
-          <Button icon='add' label='Add device' flat primary onClick={this.addDevice} raised />
-        </Panel>
+          <button onClick={this.addDevice}>Add device</button>
+        </div>
         <Notifications
           notifications={notifications}
           onTimeout={this.removeNotification}
         />
-      </Layout>
+      </div>
     );
   }
 }
