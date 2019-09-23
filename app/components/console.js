@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ReactConsole from 'react-console-component';
-require('react-console-component/lib/react-console.css');
+import 'react-console-component/lib/react-console.css';
 
 export class Console extends React.Component {
   console = null;
@@ -16,7 +16,9 @@ export class Console extends React.Component {
   echo = (message, notify = true) => {
     const { onCommand } = this.props;
     
-    notify ? onCommand(message) : this.console.current.log(message);
+    notify ?
+      onCommand(message) :
+      this.console.current.log(message);
 
     this.console.current.return();
   }

@@ -1,41 +1,46 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const defaultSelectPort = ({ onChangePort, ports, selectedPort }, a) => {
-  const [defaultPort, ...other] = ports;
+const useSelectPort = ({ ports = [] }) => {
+  const [selectedPort, setSelectedPort] = React.useState(ports[0]);
 
-  console.log('portshere2', a, ports);
+  const portsNames = ports.map(({ comName }) => comName).join(' ');
 
-  if (!selectedPort && defaultPort) {
-    onChangePort(defaultPort.comName);
-  }
+  React.useEffect(() => setSelectedPort(ports[0]), [portsNames]);
+
+  return { selectedPort, setSelectedPort };
 };
 
 export const DeviceSelect = ({
   ports = [],
-  onChangePort,
-  selectedPort,
   onConnect
 }) => {
-
-  React.useEffect(() => defaultSelectPort({ onChangePort, ports, selectedPort }, 'mount'), []);
-  React.useEffect(() => defaultSelectPort({ onChangePort, ports, selectedPort }, 'update ports'), [ports.map(({comName}) => comName).join('')]);
+  const { selectedPort, setSelectedPort } = useSelectPort({ ports });
 
   return ports.length ? (
     <div>
-      <label>Select device on port</label>
-      <select onChange={(e) => {
-        onChangePort(e.currentTarget.value)
-      }}>
+      <label>
+        Select device on port
+      </label>
+      <select onChange={(e) => setSelectedPort({ comName: e.target.value })}>
         {
-          ports.map(({comName}, index) => (
-            <option key={`${comName}-${index}`}value={comName} selected={comName === selectedPort}>{comName}</option>
+          ports.map(({ comName }, index) => (
+            <option
+              key={`${comName}-${index}`}
+              value={comName}
+              selected={Boolean(
+                selectedPort &&
+                selectedPort.comName === comName
+              )}
+            >
+              {comName}
+            </option>
           ))
         }
       </select>
       {
         ports.length > 0 && (
-          <button onClick={onConnect} icon="link" raised primary>
+          <button onClick={() => onConnect(selectedPort.comName)} icon="link" raised primary>
             Connect
           </button>
         )

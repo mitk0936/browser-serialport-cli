@@ -17,7 +17,7 @@ const list = () => new Promise((resolve, reject) => {
 });
 
 const init = (comName, onSuccess, onError) => {
-  const port = new serialport(comName, { baudRate: 9600 });
+  const port = new serialport(comName, { baudRate: 115200 });
 
   const parser = port.pipe(new Readline({ delimiter: '\r\n' }));
 
