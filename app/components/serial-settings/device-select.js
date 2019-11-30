@@ -1,38 +1,27 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const useSelectPort = ({ ports = [] }) => {
-  const [selectedPort, setSelectedPort] = React.useState(ports[0]);
-
-  const portsNames = ports.map(({ comName }) => comName).join(' ');
-
-  React.useEffect(() => setSelectedPort(ports[0]), [portsNames]);
-
-  return { selectedPort, setSelectedPort };
-};
+import { useSelectOption } from '../utils';
 
 export const DeviceSelect = ({
   ports = [],
   onConnect
 }) => {
-  const { selectedPort, setSelectedPort } = useSelectPort({ ports });
+  const selectPortOptions = useSelectOption({ options: ports, idKey: 'comName' });
+  const port = selectPortOptions.selectedOption;
 
   return ports.length ? (
     <div>
       <label>
         Select device on port
       </label>
-      <select onChange={(e) => setSelectedPort({ comName: e.target.value })}>
+      <select
+        value={port && port.comName}
+        onChange={(e) => selectPortOptions.setSelectedOption({ comName: e.target.value })}
+      >
         {
           ports.map(({ comName }, index) => (
-            <option
-              key={`${comName}-${index}`}
-              value={comName}
-              selected={Boolean(
-                selectedPort &&
-                selectedPort.comName === comName
-              )}
-            >
+            <option key={`${comName}-${index}`} value={comName}>
               {comName}
             </option>
           ))
@@ -40,7 +29,7 @@ export const DeviceSelect = ({
       </select>
       {
         ports.length > 0 && (
-          <button onClick={() => onConnect(selectedPort.comName)} icon="link" raised primary>
+          <button onClick={() => onConnect(port && port.comName)}>
             Connect
           </button>
         )
@@ -57,8 +46,6 @@ DeviceSelect.propTypes = {
   ports: PropTypes.arrayOf(PropTypes.shape({
     comName: PropTypes.string.isRequired
   })).isRequired,
-  selectedPort: PropTypes.string,
-  onChangePort: PropTypes.func.isRequired,
   onConnect: PropTypes.func.isRequired
 };
 

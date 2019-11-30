@@ -14,8 +14,10 @@ const Device = ({ socket, createNotification, onRemove }) => {
 
   const deviceConsole = React.useRef(null);
 
+  const consolePrint = deviceConsole && deviceConsole.current && deviceConsole.current.print;
+
   const printLog = printConsoleLog({
-    print: deviceConsole && deviceConsole.current && deviceConsole.current.print,
+    print: consolePrint,
     onError: (e) => createNotification({ label: e.message })
   });
 
@@ -29,7 +31,10 @@ const Device = ({ socket, createNotification, onRemove }) => {
     socket,
     onMessage: ({ line, newLine, id }) => setLastMessage({ line, newLine, id }),
     onError: ({ message }) => {
-      printLog({ log: `Port Error: ${message}`, prefix: '<<<' });
+      if (consolePrint) {
+        printLog({ log: `Port Error: ${message}`, prefix: '<<<' });
+      }
+
       createNotification({ label: message });
     }
   });
@@ -69,7 +74,7 @@ const Device = ({ socket, createNotification, onRemove }) => {
               onCommand={(command) => sendMessage({ command })}
             />
             <div>
-              <label for="new-line-parse">
+              <label htmlFor="new-line-parse">
                 New line parser
               </label>
               <input id="new-line-parse" type="checkbox"
@@ -83,7 +88,7 @@ const Device = ({ socket, createNotification, onRemove }) => {
                 }}
               />
               <span style={{ marginLeft: '10px' }}>
-                <label for="new-line-send">Send new line</label>
+                <label htmlFor="new-line-send">Send new line</label>
                 <input id="new-line-send" type="checkbox"
                   checked={sendNewLine}
                   onChange={(e) => {

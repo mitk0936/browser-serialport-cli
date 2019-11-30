@@ -1,26 +1,36 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export class Notifications extends React.Component {
-  render() {
-    const { notifications, onTimeout } = this.props;
-    
-    return (
-      <React.Fragment>
-        {
-          notifications.map(({ id, label }) => (
-            <div>{id} {label}</div>
-          ))
-        } 
-      </React.Fragment>
-    );
-  }
+const Notification = ({ id, label, onTimeout }) => {
+  React.useEffect(() => {
+    setTimeout(onTimeout, 10000);
+  }, []);
+
+  return (
+    <div>{id} {label}</div>
+  );
+};
+
+export const Notifications = ({ notifications = [], onTimeout }) => {
+  return (
+    <React.Fragment>
+      {notifications.map((notification) =>
+        <Notification
+          key={notification.id}
+          id={notification.id}
+          label={notification.label}
+          onTimeout={() => onTimeout(notification.id)}
+        />
+      )} 
+    </React.Fragment>
+  );
 };
 
 Notifications.propTypes = {
-  notifications: PropTypes.arrayOf({
-    id: PropTypes.string.isRequired
-  }),
+  notifications: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired
+  })),
   onTimeout: PropTypes.func.isRequired
 };
 

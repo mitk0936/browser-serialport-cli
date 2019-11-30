@@ -16,12 +16,12 @@ const list = () => new Promise((resolve, reject) => {
   });
 });
 
-const init = (comName, onSuccess, onError) => {
-  const port = new serialport(comName, { baudRate: 115200 });
+const init = ({ comName, onPortOpened, onError }) => {
+  const port = new serialport(comName, { baudRate: 9600 });
 
   const parser = port.pipe(new Readline({ delimiter: '\r\n' }));
 
-  port.on('open', onSuccess);
+  port.on('open', onPortOpened);
 
   port.on('error', onError);
 

@@ -20,7 +20,7 @@ export const useDeviceWebsocket = ({ socket, onMessage, onError }) => {
   return {
     ports,
     activeConnection,
-    startConnection: (port) => socket.emit('initSerialConnection', { comName: port }),
+    startConnection: (port = null) => socket.emit('initSerialConnection', { comName: port }),
     sendMessage: ({ command, newLine }) => socket.emit('web->serial', { command, newLine }),
     closeConnection: () => [socket.emit('closeSerialConnection'), setActiveConnection(false)]
   };
@@ -41,6 +41,16 @@ export const useConsoleMessage = ({ lastMessage, newLineParser, onMessage }) => 
       }
     }
   }, [lastMessage && lastMessage.id]);
+};
+
+export const useSelectOption = ({ options = [], idKey }) => {
+  const [selectedOption, setSelectedOption] = React.useState(options[0]);
+
+  const optionsNames = options.map((option) => option[idKey]).join(' ');
+
+  React.useEffect(() => setSelectedOption(options[0]), [optionsNames]);
+
+  return { selectedOption, setSelectedOption };
 };
 
 export const printConsoleLog = ({ print, onError }) => ({ log, prefix = '<<<' }) => {

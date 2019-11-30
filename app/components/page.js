@@ -21,33 +21,34 @@ const App = () => {
               <Device
                 key={id}
                 socket={devices[id].socket}
-                createNotification={({ label }) => setNotifications([
-                  ...notifications,
-                  {
-                    id: uuid(),
-                    label
-                  }
-                ])}
+                createNotification={({ label }) => setNotifications(
+                  (notifications) => [...notifications, { label, id: uuid() }]
+                )}
                 onRemove={() => setDevices(omit(id, devices))}
               />
             )
           )}
         </div>
         <button
-          onClick={() => setDevices({
-            ...devices,
-            [uuid()]: {
-              socket: io('http://127.0.0.1:6543'),
-              active: true
-            }
-          })}
+          onClick={() => {
+
+            setDevices({
+              ...devices,
+              [uuid()]: {
+                socket: io('http://127.0.0.1:6543'),
+                active: true
+              }
+            })
+          }}
         >
           Add device
         </button>
       </div>
       <Notifications
         notifications={notifications}
-        onTimeout={(notificationId) => setNotifications(notifications.filter(({ id }) => id !== notificationId))}
+        onTimeout={(notificationId) => {
+          setNotifications((notifications) => notifications.filter(({ id }) => id !== notificationId))
+        }}
       />
     </React.Fragment>
   );
