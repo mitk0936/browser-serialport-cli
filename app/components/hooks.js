@@ -8,7 +8,7 @@ export const useDeviceWebsocket = ({ socket, onMessage, onError }) => {
   React.useEffect(() => {
     socket.on('portslist', (ports = []) => setPorts(ports));
 
-    socket.on('portError', ({ message }) => onError({ message }));
+    socket.on('portError', ({ type, message }) => onError({ type, message }));
 
     socket.on('serialConnectionReady', ({ comName }) => setActiveConnection(true));
 
@@ -20,7 +20,7 @@ export const useDeviceWebsocket = ({ socket, onMessage, onError }) => {
   return {
     ports,
     activeConnection,
-    startConnection: (port = null) => socket.emit('initSerialConnection', { comName: port }),
+    startConnection: (port = null, baudRate = 9600) => socket.emit('initSerialConnection', { comName: port, baudRate }),
     sendMessage: ({ command, newLine }) => socket.emit('web->serial', { command, newLine }),
     closeConnection: () => [socket.emit('closeSerialConnection'), setActiveConnection(false)]
   };
@@ -51,12 +51,4 @@ export const useSelectOption = ({ options = [], idKey }) => {
   React.useEffect(() => setSelectedOption(options[0]), [optionsNames]);
 
   return { selectedOption, setSelectedOption };
-};
-
-export const printConsoleLog = ({ print, onError }) => ({ log, prefix = '<<<' }) => {
-  try {
-    print(`${prefix} ${log}`);
-  } catch (e) {
-    onError && onError(e);
-  }
 };

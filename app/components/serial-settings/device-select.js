@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { useSelectOption } from '../utils';
+import { useSelectOption } from '../hooks';
 
 export const DeviceSelect = ({
   ports = [],

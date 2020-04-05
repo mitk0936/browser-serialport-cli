@@ -3,21 +3,24 @@ import PropTypes from 'prop-types';
 
 import Console from '../components/console';
 import DeviceSelect from './serial-settings/device-select';
+import BaudRateSelect from './serial-settings/baud-rate-select';
 
-import { useDeviceWebsocket, useConsoleMessage, printConsoleLog } from './utils';
+import { useDeviceWebsocket, useConsoleMessage } from './hooks';
+import { printConsoleLog } from '../utils';
 
-const Device = ({ socket, createNotification, onRemove }) => {
+const Device = ({ id, socket, createNotification, onRemove }) => {
   const [connectedPort, setConnectedPort] = React.useState(null);
   const [lastMessage, setLastMessage] = React.useState(null);
   const [sendNewLine, setSendNewLine] = React.useState(false);
   const [newLineParser, setNewLineParser] = React.useState(false);
+  const [selectedBaudRate, setNewBaudRate] = React.useState(null);
 
   const deviceConsole = React.useRef(null);
 
-  const consolePrint = deviceConsole && deviceConsole.current && deviceConsole.current.print;
-
   const printLog = printConsoleLog({
-    print: consolePrint,
+    print: deviceConsole &&
+      deviceConsole.current &&
+      deviceConsole.current.print,
     onError: (e) => createNotification({ label: e.message })
   });
 
@@ -29,12 +32,14 @@ const Device = ({ socket, createNotification, onRemove }) => {
     closeConnection
   } = useDeviceWebsocket({
     socket,
-    onMessage: ({ line, newLine, id }) => setLastMessage({ line, newLine, id }),
-    onError: ({ message }) => {
-      if (consolePrint) {
-        printLog({ log: `Port Error: ${message}`, prefix: '<<<' });
+    onMessage: ({ line, newLine, id }) =>
+      setLastMessage({ line, newLine, id }),
+    onError: ({ type, message }) => {
+      if (type === 'PORT_DISCONNECTED') {
+        onRemove();
       }
 
+      printLog({ log: `Port Error: ${message}`, prefix: '<<<' })
       createNotification({ label: message });
     }
   });
@@ -46,24 +51,27 @@ const Device = ({ socket, createNotification, onRemove }) => {
   });
 
   return (
-    <div>
+    <div className="device-container">
       {
         activeConnection && connectedPort && (
           <span>
-            {connectedPort}
+            {`${connectedPort} baudrate: ${selectedBaudRate}`}
           </span>
         )
       }
+      {
+        !activeConnection && (
+          <BaudRateSelect onChange={({ rate }) => setNewBaudRate(rate)} />
+        )
+      }
       {!activeConnection && (
-        <div>
-          <DeviceSelect
-            ports={ports}
-            onConnect={(port) => {
-              setConnectedPort(port);
-              startConnection(port);
-            }}
-          />
-        </div>
+        <DeviceSelect
+          ports={ports}
+          onConnect={(port) => {
+            setConnectedPort(port);
+            startConnection(port, selectedBaudRate);
+          }}
+        />
       )}
       {
         activeConnection && (
@@ -71,13 +79,13 @@ const Device = ({ socket, createNotification, onRemove }) => {
             <Console
               ref={deviceConsole}
               welcomeMessage={`Connected to: ${connectedPort}`}
-              onCommand={(command) => sendMessage({ command })}
+              onCommand={(command) => sendMessage({ command, newLine: sendNewLine })}
             />
             <div>
-              <label htmlFor="new-line-parse">
+              <label htmlFor={`${id}-new-line-parse`}>
                 New line parser
               </label>
-              <input id="new-line-parse" type="checkbox"
+              <input id={`${id}-new-line-parse`} type="checkbox"
                 checked={newLineParser}
                 onChange={(e) => {
                   setNewLineParser(Boolean(e.target.checked));
@@ -88,8 +96,8 @@ const Device = ({ socket, createNotification, onRemove }) => {
                 }}
               />
               <span style={{ marginLeft: '10px' }}>
-                <label htmlFor="new-line-send">Send new line</label>
-                <input id="new-line-send" type="checkbox"
+                <label htmlFor={`${id}-new-line-send`}>Send new line</label>
+                <input id={`${id}-new-line-send`} type="checkbox"
                   checked={sendNewLine}
                   onChange={(e) => {
                     setSendNewLine(e.target.checked);

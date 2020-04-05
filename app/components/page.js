@@ -15,11 +15,12 @@ const App = () => {
   return (
     <React.Fragment>
       <div>
-        <div>
+        <div class="clearfix">
           {
             Object.keys(devices).map((id) => (
               <Device
                 key={id}
+                id={id}
                 socket={devices[id].socket}
                 createNotification={({ label }) => setNotifications(
                   (notifications) => [...notifications, { label, id: uuid() }]

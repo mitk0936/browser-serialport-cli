@@ -1,7 +1,7 @@
 const socketIo = require('socket.io');
 const serial = require('./serial');
 
-const initSerialConnection = ({ client, comName, onDisconnect }) => {
+const initSerialConnection = ({ client, comName, baudRate, onDisconnect }) => {
   if (!comName) {
     client.emit('portError', { message: `Connection cannot be established to ${comName}` });
     return;
@@ -10,8 +10,9 @@ const initSerialConnection = ({ client, comName, onDisconnect }) => {
   const { send, subscribe, close } =
     serial.init({
       comName,
+      baudRate,
       onPortOpened: () => client.emit('serialConnectionReady', { comName }),
-      onError: ({ message }) => client.emit('portError', { message })
+      onError: ({ type, message }) => client.emit('portError', { type, message })
     });
 
   subscribe(({ line, newLine }) => client.emit('serial->web', { line, newLine }));
@@ -40,9 +41,10 @@ const run = (server) => {
     const portsUpdate = setInterval(() => emitPorts(), 10000);
     emitPorts(client);
     
-    client.on('initSerialConnection', ({ comName }) => initSerialConnection({
+    client.on('initSerialConnection', ({ comName, baudRate }) => initSerialConnection({
       client,
       comName,
+      baudRate,
       onDisconnect: () => clearInterval(portsUpdate)
     }));
   });

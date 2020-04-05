@@ -16,19 +16,23 @@ const list = () => new Promise((resolve, reject) => {
   });
 });
 
-const init = ({ comName, onPortOpened, onError }) => {
-  const port = new serialport(comName, { baudRate: 9600 });
+const init = ({ comName, baudRate = 9600, onPortOpened, onError }) => {
+  const port = new serialport(comName, { baudRate });
 
   const parser = port.pipe(new Readline({ delimiter: '\r\n' }));
+
+  console.log('Making connection', { comName, baudRate });
 
   port.on('open', onPortOpened);
 
   port.on('error', onError);
 
-  port.on('close', () => onError({ message: `${comName} port was closed.` }));
+  port.on('close', () => onError({ type: 'PORT_DISCONNECTED', message: `${comName} port was closed.` }));
   
   const send = (data, newLine = false) => {
     const stringData = newLine ? `${data}\r\n` : data;
+
+    console.log('Writing to serial', { newLine, stringData });
 
     port.write(stringData, (err) => {
       if (err) {

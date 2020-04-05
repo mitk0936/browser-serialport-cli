@@ -4,3 +4,11 @@ export const omit = (keys, obj) =>
     .reduce((acc, [key, value]) => Object.assign({}, acc, {
       [key]: value,
     }), {});
+
+export const printConsoleLog = ({ print, onError }) => ({ log, prefix = '<<<' }) => {
+  try {
+    print(`${prefix} ${log}`);
+  } catch (e) {
+    onError && onError(e);
+  }
+};
