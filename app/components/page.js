@@ -12,10 +12,12 @@ const App = () => {
   const [devices, setDevices] = React.useState({});
   const [notifications, setNotifications] = React.useState([]);
 
+  const onRemove = (id) => setDevices(omit(id, devices));
+
   return (
     <React.Fragment>
       <div>
-        <div class="clearfix">
+        <div className="clearfix">
           {
             Object.keys(devices).map((id) => (
               <Device
@@ -25,10 +27,10 @@ const App = () => {
                 createNotification={({ label }) => setNotifications(
                   (notifications) => [...notifications, { label, id: uuid() }]
                 )}
-                onRemove={() => setDevices(omit(id, devices))}
+                onRemove={() => onRemove(id)}
               />
-            )
-          )}
+            ))
+          }
         </div>
         <button
           onClick={() => {

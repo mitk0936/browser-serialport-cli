@@ -10,7 +10,7 @@ export const useDeviceWebsocket = ({ socket, onMessage, onError }) => {
 
     socket.on('portError', ({ type, message }) => onError({ type, message }));
 
-    socket.on('serialConnectionReady', ({ comName }) => setActiveConnection(true));
+    socket.on('serialConnectionReady', ({ path }) => setActiveConnection(true));
 
     socket.on('serial->web', ({ line, newLine }) => onMessage({ line, newLine, id: `message-${uuid()}` }));
 
@@ -20,7 +20,7 @@ export const useDeviceWebsocket = ({ socket, onMessage, onError }) => {
   return {
     ports,
     activeConnection,
-    startConnection: (port = null, baudRate = 9600) => socket.emit('initSerialConnection', { comName: port, baudRate }),
+    startConnection: (port = null, baudRate = 9600) => socket.emit('initSerialConnection', { path: port, baudRate }),
     sendMessage: ({ command, newLine }) => socket.emit('web->serial', { command, newLine }),
     closeConnection: () => [socket.emit('closeSerialConnection'), setActiveConnection(false)]
   };

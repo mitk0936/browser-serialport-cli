@@ -2,32 +2,28 @@ const serialport = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
 const list = () => new Promise((resolve, reject) => {
-  serialport.list((err, ports) => {
-    if (err) {
-      reject('Error occured with finding connected device on USB port.');
-    }
-
+  serialport.list().then((ports) => {
     resolve(
-      ports.filter(
-        ({ serialNumber, manufacturer }) => 
-          Boolean(serialNumber || manufacturer)
-      )
+      ports.filter(({ pnpId }) => Boolean(pnpId))
     );
+  }).catch((err) => {
+    console.log(err);
+    reject('Error occured with finding connected device on USB port.');
   });
 });
 
-const init = ({ comName, baudRate = 9600, onPortOpened, onError }) => {
-  const port = new serialport(comName, { baudRate });
+const init = ({ path, baudRate = 9600, onPortOpened, onError }) => {
+  const port = new serialport(path, { baudRate });
 
   const parser = port.pipe(new Readline({ delimiter: '\r\n' }));
 
-  console.log('Making connection', { comName, baudRate });
+  console.log('Making connection', { path, baudRate });
 
   port.on('open', onPortOpened);
 
   port.on('error', onError);
 
-  port.on('close', () => onError({ type: 'PORT_DISCONNECTED', message: `${comName} port was closed.` }));
+  port.on('close', () => onError({ type: 'PORT_DISCONNECTED', message: `${path} port was closed.` }));
   
   const send = (data, newLine = false) => {
     const stringData = newLine ? `${data}\r\n` : data;

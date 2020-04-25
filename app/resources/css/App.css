@@ -11,6 +11,7 @@ button, select {
   display: block;
   padding: 5px;
   margin: 10px 0;
+  max-width: 100%;
 }
 
 .device-container {

@@ -7,7 +7,7 @@ export const DeviceSelect = ({
   ports = [],
   onConnect
 }) => {
-  const selectPortOptions = useSelectOption({ options: ports, idKey: 'comName' });
+  const selectPortOptions = useSelectOption({ options: ports, idKey: 'path' });
   const port = selectPortOptions.selectedOption;
 
   return ports.length ? (
@@ -16,20 +16,20 @@ export const DeviceSelect = ({
         Select device on port
       </label>
       <select
-        value={port && port.comName}
-        onChange={(e) => selectPortOptions.setSelectedOption({ comName: e.target.value })}
+        value={port && port.path}
+        onChange={(e) => selectPortOptions.setSelectedOption({ path: e.target.value })}
       >
         {
-          ports.map(({ comName }, index) => (
-            <option key={`${comName}-${index}`} value={comName}>
-              {comName}
+          ports.map(({ path, pnpId }, index) => (
+            <option key={`${path}-${index}`} value={path}>
+              {pnpId}
             </option>
           ))
         }
       </select>
       {
         ports.length > 0 && (
-          <button onClick={() => onConnect(port && port.comName)}>
+          <button onClick={() => onConnect(port && port.path)}>
             Connect
           </button>
         )
@@ -44,7 +44,7 @@ export const DeviceSelect = ({
 
 DeviceSelect.propTypes = {
   ports: PropTypes.arrayOf(PropTypes.shape({
-    comName: PropTypes.string.isRequired
+    path: PropTypes.string.isRequired
   })).isRequired,
   onConnect: PropTypes.func.isRequired
 };
